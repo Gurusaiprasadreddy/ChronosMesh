@@ -3,7 +3,7 @@ import networkx as nx
 
 from chronosmesh.events.event import Event
 from chronosmesh.causality.happens_before import HappensBeforeDetector
-from chronosmesh.causality.transitive_reduction import compute_transitive_reduction
+from chronosmesh.causality.transitive_reduction import compute_transitive_reduction, incremental_transitive_reduction
 
 class CausalDAGBuilder:
     def __init__(self):
@@ -31,7 +31,16 @@ class CausalDAGBuilder:
     def build_incremental(self, event: Event) -> nx.DiGraph:
         self.events_map[event.event_id] = event
         self._add_node(event)
-        
+
+        # Fast-path: When explicit parent_event_ids are declared
+        if event.parent_event_ids:
+            for pid in event.parent_event_ids:
+                if pid in self.events_map:
+                    self.dag.add_edge(pid, event.event_id)
+            self.dag = incremental_transitive_reduction(self.dag, event.event_id)
+            return self.dag
+
+        # Fallback: Happens-before detection against active nodes
         for node in list(self.dag.nodes):
             if node != event.event_id:
                 other = self.events_map[node]
@@ -40,8 +49,8 @@ class CausalDAGBuilder:
                     self.dag.add_edge(node, event.event_id)
                 elif rel == rel.HAPPENS_AFTER:
                     self.dag.add_edge(event.event_id, node)
-                    
-        self.dag = compute_transitive_reduction(self.dag)
+
+        self.dag = incremental_transitive_reduction(self.dag, event.event_id)
         return self.dag
 
     def _add_node(self, event: Event):
