@@ -377,7 +377,18 @@ export const App: React.FC = () => {
       />
 
       {/* Main Container */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div
+        className="main-area"
+        style={{
+          marginLeft: 'var(--sidebar-w, 240px)',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          minHeight: '100vh',
+          width: 'calc(100% - var(--sidebar-w, 240px))',
+        }}
+      >
         <Navbar
           title={
             currentView === 'overview'
