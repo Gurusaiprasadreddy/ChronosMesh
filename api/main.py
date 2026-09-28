@@ -54,8 +54,8 @@ REST API layer for the ChronosMesh Distributed Causality Engine.
 **Project:** ChronosMesh — Cloud Computing PE-5
     """,
     version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # ── Secure CORS Configuration ─────────────────────────────────────────────────
@@ -244,6 +244,16 @@ if os.path.isdir(_frontend_dir):
         if os.path.isfile(vanilla_path):
             return FileResponse(vanilla_path)
         return FileResponse(os.path.join(_frontend_dir, "index.html"))
+
+    @app.get("/api/docs", include_in_schema=False)
+    def redirect_api_docs():
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/docs")
+
+    @app.get("/api/redoc", include_in_schema=False)
+    def redirect_api_redoc():
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/redoc")
 
 
 if __name__ == "__main__":
