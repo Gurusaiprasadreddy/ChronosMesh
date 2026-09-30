@@ -105,19 +105,19 @@ npm run dev
 ## 6. Deterministic Demo Sequence (`TRACE-DEMO-001`)
 
 1. Open `http://localhost:8000` (or `http://localhost:3000` in dev mode) in your browser.
-2. Sign in with default credentials:
+2. Sign in with default credentials or use the 1-click **Quick Demo Access** buttons in the login modal:
    - **Admin:** `guru` / `chronosmesh` (Full configuration, scenario triggering, and resets)
    - **Analyst/Operator:** `analyst` / `analyst123` (Analysis, what-if, benchmarks)
    - **Viewer:** `demo` / `demo123` (Read-only view)
-3. Under **Scenarios**, select **Deterministic E-Commerce Order Flow (`TRACE-DEMO-001`)**.
+   - *Note:* Intuitive **`Log In`** and **`Log Out`** controls are always available in both the top-right Navbar and bottom-left Sidebar user card.
+3. Under **Scenarios**, select **Deterministic E-Commerce Order Flow (`TRACE-DEMO-001`)** (or click the **⚡ Load TRACE-DEMO-001** button on the overview).
 4. Observe the dynamic results:
-   - **Raw Arrival Order:** Events arrive inverted due to network delay:
-     `ORDER_CREATED -> PAYMENT_COMPLETED -> PAYMENT_STARTED -> SHIPMENT_CREATED -> INVENTORY_RESERVED -> NOTIFICATION_SENT`
-   - **Reconstructed Causal DAG:** ChronosMesh mathematically reorders them:
-     `ORDER_CREATED -> PAYMENT_STARTED -> PAYMENT_COMPLETED -> INVENTORY_RESERVED -> SHIPMENT_CREATED -> NOTIFICATION_SENT`
-   - **Concurrency:** `payment-svc` and `inventory-svc` execute concurrently ($E_2 \parallel E_4$).
-   - **Anomalies Panel:** Inspect cross-region clock drift and TrueTime confidence scores.
-   - **What-If Simulation:** Invalidate an event to view downstream cascade blast radius and graph diffs.
+   - **Reconstructed Causal DAG:** ChronosMesh mathematically reorders events and automatically selects the initial root event (`ORDER_CREATED`), immediately populating the **Event Details** inspection drawer.
+   - **Interactive Node Inspection:** Click or tap any node in the DAG (`PS`, `PC`, `IR`, `SC`, `NS`) to inspect its exact causality metadata, logical clock, and parent/child dependencies with responsive hitboxes on all devices.
+   - **Raw Arrival Order:** View side-by-side comparison of disordered arrival order vs true causal order.
+   - **Deterministic Service Health Map:** Real-time operational status per service (Healthy, Degraded, Critical).
+   - **Anomalies Panel:** Inspect cross-region clock drift, physical clock inversions, and TrueTime confidence scores.
+   - **What-If Simulation:** Invalidate an event to calculate downstream cascade blast radius and graph diffs.
 
 ---
 
@@ -158,7 +158,7 @@ cd frontend && npm run test
 
 # Production Frontend Build (from frontend/)
 cd frontend && npm run build
-# Result: 623 modules transformed -> dist/index.html (1.20 kB), dist/assets/ (335.80 kB)
+# Result: 623 modules transformed -> dist/index.html (1.20 kB), dist/assets/ (338.25 kB)
 ```
 
 ---
@@ -184,17 +184,18 @@ ChronosMesh provides a production-grade distributed systems observability dashbo
 
 ### 9.3 UI Views & Capabilities
 1. **System Overview Dashboard:** Real API metrics, dynamic Service Health Map, live causal edge transit latencies, recent anomaly alerts, and a prominent 1-click **⚡ Load TRACE-DEMO-001** trigger.
-2. **Trace Explorer & D3 Causal Graph:** Interactive Zoom/Pan/Reset toolbar, hover tooltips, service swimlanes, anomaly/root-cause highlights, and rich event inspector (Event ID, type, service, arrival time, event time, Lamport, Vector Clock, parents, children).
+2. **Trace Explorer & D3 Causal Graph:** Interactive Zoom/Pan/Reset toolbar, hover tooltips, service swimlanes, anomaly/root-cause highlights, and rich event inspector (Event ID, type, service, arrival time, event time, Lamport, Vector Clock, parents, children) with initial root auto-selection and cross-device click support.
 3. **Dual Timeline:** Side-by-side comparison of **Kafka Arrival Order** (disordered) vs **Reconstructed Causal Order** (topologically verified).
 4. **Anomaly Center:** Categorized triage (Critical, Warning, Info), search filter, and diagnosis drawer.
 5. **Root-Cause Analysis:** Structured diagnosis flow (`ROOT CAUSE` → `CAUSAL CHAIN` → `AFFECTED SERVICES` → `DOWNSTREAM IMPACT`).
 6. **What-If Blast Radius Lab:** Counterfactual non-destructive simulation (`🧪 SIMULATION MODE`) calculating cascade depth and affected nodes/services upon event removal.
 7. **Analytics Page:** Multi-tab technical dashboard featuring edge latency histograms, graph topology metrics, and step-through causal layer replay.
 8. **Graph Diff View:** Structural comparison highlighting added/removed nodes and edges with Jaccard similarity scoring.
+9. **Authentication & Session Controls:** Top-right Navbar & bottom-left Sidebar user cards with explicit `Log Out` / `Log In` actions, session expiration detection, and 1-click demo logins.
 
 ---
 
-## 9. Performance Benchmarks
+## 10. Performance Benchmarks
 
 | Metric | Measured Value | Benchmark Scope & Measurement Boundary |
 | :--- | :--- | :--- |
@@ -209,7 +210,7 @@ ChronosMesh provides a production-grade distributed systems observability dashbo
 
 ---
 
-## 10. Security Architecture
+## 11. Security Architecture
 - **Authentication:** JWT tokens signed with HMAC-SHA256 (`HS256`) with configurable expiration.
 - **Role-Based Access Control:** Strict 3-tier hierarchy (`viewer`, `operator`, `admin`).
 - **CORS Whitelist:** Explicit local origins (`http://localhost:3000`, `http://localhost:8000`, `http://localhost:5173`); wildcard `*` forbidden.
@@ -218,7 +219,7 @@ ChronosMesh provides a production-grade distributed systems observability dashbo
 
 ---
 
-## 11. Documentation Index
+## 12. Documentation Index
 
 The complete project documentation package is organized in [`docs/`](docs/):
 
@@ -237,7 +238,7 @@ The complete project documentation package is organized in [`docs/`](docs/):
 
 ---
 
-## 12. Team Contributions & Division of Responsibility
+## 13. Team Contributions & Division of Responsibility
 
 - **B. Guru Sai Prasad Reddy:**
   - Full-Stack Integration, FastAPI Architecture, REST & GraphQL Endpoints, and SSE Stream Subsystem.
