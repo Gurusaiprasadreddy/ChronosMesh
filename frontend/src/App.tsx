@@ -103,8 +103,9 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const handleAuthExpired = () => {
-      setShowLoginModal(true);
-      showToast('Authentication expired. Please log in again.');
+      setShowLoginModal(false);
+      setShowLanding(true);
+      showToast('Authentication expired. Please sign in again.');
     };
     const handleOpenLogin = () => {
       setShowLoginModal(true);
@@ -121,8 +122,9 @@ export const App: React.FC = () => {
 
   const handleLogout = useCallback(() => {
     logout();
-    showToast('Logged out of ChronosMesh session');
-    setShowLoginModal(true);
+    setShowLoginModal(false);
+    setShowLanding(true);
+    showToast('Logged out of ChronosMesh');
   }, [logout, showToast]);
 
   const handleOpenDashboardDirectly = async () => {
