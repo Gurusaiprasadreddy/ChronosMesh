@@ -5,6 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
 from api.store import ChronosMeshStore, get_store
+from api.schemas.analysis_models import (
+    ServiceHealthReport,
+    ClockDriftTimeline,
+    LatencyHistogramReport,
+    TopologyStatsReport,
+    EventReplayReport,
+)
+from api.services.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -287,3 +295,91 @@ async def graph_diff(
             "diff": {"note": f"Graph diff unavailable: {exc}"},
             "scenario": store.current_scenario,
         }
+
+
+# ── 1. Service Health Map ───────────────────────────────────────────────────────
+@router.get(
+    "/service-health",
+    response_model=ServiceHealthReport,
+    summary="Get real-time deterministic service health derived from DAG and anomalies",
+)
+async def get_service_health(
+    _: dict = Depends(get_current_user),
+    store: ChronosMeshStore = Depends(get_store),
+):
+    """
+    Derives service health deterministically from actual loaded DAG data and anomalies.
+    Statuses: Healthy, Degraded, Critical, Unavailable.
+    """
+    return AnalysisService.get_service_health(store)
+
+
+# ── 2. Clock Drift Timeline ─────────────────────────────────────────────────────
+@router.get(
+    "/clock-drift-timeline",
+    response_model=ClockDriftTimeline,
+    summary="Get timeline of physical clock drift and arrival skew",
+)
+async def get_clock_drift_timeline(
+    skew_tolerance_ms: float = 50.0,
+    _: dict = Depends(get_current_user),
+    store: ChronosMeshStore = Depends(get_store),
+):
+    """
+    Calculates physical clock skew and arrival delay for each event in the trace.
+    NOTE: Lamport/Vector logical counters are NEVER subtracted from physical milliseconds.
+    """
+    return AnalysisService.get_clock_drift_timeline(store, skew_tolerance_ms=skew_tolerance_ms)
+
+
+# ── 3. Latency Histogram ────────────────────────────────────────────────────────
+@router.get(
+    "/latency-histogram",
+    response_model=LatencyHistogramReport,
+    summary="Get edge transit latency distribution and percentiles (p50, p95, p99)",
+)
+async def get_latency_histogram(
+    bins: int = 5,
+    _: dict = Depends(get_current_user),
+    store: ChronosMeshStore = Depends(get_store),
+):
+    """
+    Computes distribution and percentiles (p50, p95, p99, min, max, mean)
+    for positive edge transit latencies across causal edges.
+    """
+    return AnalysisService.get_latency_histogram(store, num_bins=bins)
+
+
+# ── 4. Topology Stats ───────────────────────────────────────────────────────────
+@router.get(
+    "/topology-stats",
+    response_model=TopologyStatsReport,
+    summary="Get NetworkX graph-theoretic topology metrics, critical path, and concurrency",
+)
+async def get_topology_stats(
+    _: dict = Depends(get_current_user),
+    store: ChronosMeshStore = Depends(get_store),
+):
+    """
+    Computes graph metrics: density, coupling, longest causal path,
+    and pairwise concurrency factor.
+    """
+    return AnalysisService.get_topology_stats(store)
+
+
+# ── 5. Event Replay ─────────────────────────────────────────────────────────────
+@router.get(
+    "/event-replay",
+    response_model=EventReplayReport,
+    summary="Get topological generations for causal replay preserving concurrency",
+)
+async def get_event_replay(
+    _: dict = Depends(get_current_user),
+    store: ChronosMeshStore = Depends(get_store),
+):
+    """
+    Reconstructs replay sequences in causal layers via topological generations.
+    Events within each layer are causally concurrent and execute in parallel.
+    """
+    return AnalysisService.get_event_replay(store)
+

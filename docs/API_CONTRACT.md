@@ -330,15 +330,50 @@ Obtain token via `POST /auth/login`.
 
 ---
 
-## Planned Endpoints (REQUIRES IMPLEMENTATION)
+### `GET /api/analysis/service-health`
 
-| Endpoint | Method | Purpose | Status |
-|---|---|---|---|
-| `GET /api/events/{event_id}` | GET | Retrieve single event by ID | 📋 PLANNED |
-| `GET /api/traces/{trace_id}` | GET | All events sharing a trace_id | 📋 PLANNED |
-| `GET /api/traces/{trace_id}/dag` | GET | DAG filtered to a single trace | 📋 PLANNED |
-| `GET /api/events/{event_id}/concurrent` | GET | Events concurrent with a given event | 📋 PLANNED |
-| `GET /api/dag/dual-view` | GET | Arrival order vs causal order side-by-side | 📋 PLANNED |
-| `GET /api/dag/replay` | GET | Events active at a given timestamp `?t=ms` | 📋 PLANNED |
-| `POST /auth/refresh` | POST | Refresh JWT token | 📋 PLANNED |
-| `POST /auth/logout` | POST | Invalidate token | 📋 PLANNED |
+**Status:** ✅ EXISTING  
+**Purpose:** Deterministically derive service health from active DAG events and detected anomalies  
+**Response:** `ServiceHealthReport` (`services`, `total_services`, `healthy_count`, `degraded_count`, `critical_count`, `unavailable_count`)  
+**Source of Data:** `AnalysisService.get_service_health`  
+**Frontend Consumer:** Dashboard Service Health Map
+
+---
+
+### `GET /api/analysis/clock-drift-timeline`
+
+**Status:** ✅ EXISTING  
+**Purpose:** Timeline of physical timestamps, arrival skew, and causal transit skews  
+**Query Params:** `skew_tolerance_ms` (float, default 50.0)  
+**Response:** `ClockDriftTimeline` (`data_points`, `max_arrival_skew_ms`, `inversion_count`)  
+**Data Invariant:** Evaluated purely on physical timestamps and arrival delays. Logical clocks are preserved for ordering and never subtracted from ms.  
+**Frontend Consumer:** Anomaly Center & Timeline
+
+---
+
+### `GET /api/analysis/latency-histogram`
+
+**Status:** ✅ EXISTING  
+**Purpose:** Distribution of positive edge transit times across causal edges  
+**Query Params:** `bins` (int, default 5)  
+**Response:** `LatencyHistogramReport` (`sample_size`, `p50_ms`, `p95_ms`, `p99_ms`, `min_ms`, `max_ms`, `mean_ms`, `bins`, `inversion_edge_count`)  
+**Frontend Consumer:** Dashboard & Analytics page
+
+---
+
+### `GET /api/analysis/topology-stats`
+
+**Status:** ✅ EXISTING  
+**Purpose:** Graph-theoretic analysis of causal DAG using NetworkX  
+**Response:** `TopologyStatsReport` (`node_count`, `edge_count`, `density`, `is_connected`, `longest_causal_path`, `coupling_metric`, `concurrency_ratio`)  
+**Frontend Consumer:** Analytics page
+
+---
+
+### `GET /api/analysis/event-replay`
+
+**Status:** ✅ EXISTING  
+**Purpose:** Causal playback layers via DAG topological generations preserving true concurrency  
+**Response:** `EventReplayReport` (`total_layers`, `total_events`, `max_parallelism`, `layers`)  
+**Frontend Consumer:** Analytics page Event Replay view
+

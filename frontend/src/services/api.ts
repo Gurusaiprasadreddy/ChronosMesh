@@ -17,6 +17,12 @@ import {
   BenchmarkReport,
   User,
   DAGNode,
+  ServiceHealthReport,
+  ClockDriftTimeline,
+  LatencyHistogramReport,
+  TopologyStatsReport,
+  EventReplayReport,
+  GraphDiffReport,
 } from '../types';
 
 const getApiBase = (): string => {
@@ -227,8 +233,30 @@ class ApiService {
     );
   }
 
-  async getGraphDiff(): Promise<{ diff: any; scenario: string }> {
-    return this.request('/api/analysis/graphdiff');
+  async getGraphDiff(): Promise<GraphDiffReport> {
+    return this.request<GraphDiffReport>('/api/analysis/graphdiff');
+  }
+
+  async getServiceHealth(): Promise<ServiceHealthReport> {
+    return this.request<ServiceHealthReport>('/api/analysis/service-health');
+  }
+
+  async getClockDriftTimeline(skewToleranceMs: number = 50.0): Promise<ClockDriftTimeline> {
+    return this.request<ClockDriftTimeline>(
+      `/api/analysis/clock-drift-timeline?skew_tolerance_ms=${skewToleranceMs}`
+    );
+  }
+
+  async getLatencyHistogram(bins: number = 5): Promise<LatencyHistogramReport> {
+    return this.request<LatencyHistogramReport>(`/api/analysis/latency-histogram?bins=${bins}`);
+  }
+
+  async getTopologyStats(): Promise<TopologyStatsReport> {
+    return this.request<TopologyStatsReport>('/api/analysis/topology-stats');
+  }
+
+  async getEventReplay(): Promise<EventReplayReport> {
+    return this.request<EventReplayReport>('/api/analysis/event-replay');
   }
 
   // ── SSE Live Event Stream ───────────────────────────────────────────────────

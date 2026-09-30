@@ -209,16 +209,16 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
             Causal Graph Neighbors
           </div>
           <div style={{ fontSize: '12px', background: '#0d1526', padding: '8px 12px', borderRadius: '6px', border: '1px solid #1e293b' }}>
-            <div style={{ marginBottom: '4px' }}>
+            <div style={{ marginBottom: '6px' }}>
               <span style={{ color: '#64748b' }}>Parents (Causes): </span>
               <span style={{ color: parents.length ? '#00d4ff' : '#94a3b8', fontWeight: 600 }}>
-                {parents.length ? `${parents.length} event(s)` : 'None (Root Event)'}
+                {parents.length ? parents.join(', ') : 'None (Root Event)'}
               </span>
             </div>
             <div>
               <span style={{ color: '#64748b' }}>Children (Effects): </span>
               <span style={{ color: children.length ? '#8b5cf6' : '#94a3b8', fontWeight: 600 }}>
-                {children.length ? `${children.length} event(s)` : 'None (Leaf Event)'}
+                {children.length ? children.join(', ') : 'None (Leaf Event)'}
               </span>
             </div>
           </div>
@@ -227,9 +227,9 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
         {/* Event ID */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>
-            Full Event ID
+            Event ID
           </div>
-          <div style={{ fontSize: '11px', fontFamily: 'monospace', color: '#64748b', wordBreak: 'break-all' }}>
+          <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--cm-accent)', wordBreak: 'break-all' }}>
             {node.id}
           </div>
         </div>

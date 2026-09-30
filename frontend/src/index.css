@@ -1,0 +1,341 @@
+/* ==========================================================================
+   ChronosMesh Observability Design System Tokens & Utility Classes
+   ========================================================================== */
+
+:root {
+  /* Color Palette - Curated Dark Theme for Distributed Systems Observability */
+  --cm-bg-base: #070b14;
+  --cm-bg-surface: #0d1526;
+  --cm-bg-surface-hover: #121d33;
+  --cm-bg-elevated: #162238;
+  --cm-bg-overlay: rgba(7, 11, 20, 0.85);
+
+  --cm-border-subtle: #1e293b;
+  --cm-border-default: #2a384f;
+  --cm-border-strong: #3b4d6b;
+  --cm-border-accent: #38bdf8;
+
+  --cm-text-primary: #f8fafc;
+  --cm-text-secondary: #94a3b8;
+  --cm-text-muted: #64748b;
+  --cm-text-inverse: #070b14;
+
+  /* Semantic State Colors */
+  --cm-accent: #38bdf8;        /* Sky blue - causal flow */
+  --cm-accent-hover: #0ea5e9;
+  --cm-accent-subtle: rgba(56, 189, 248, 0.12);
+
+  --cm-success: #10b981;       /* Emerald - healthy / causal match */
+  --cm-success-subtle: rgba(16, 185, 129, 0.12);
+
+  --cm-warning: #f59e0b;       /* Amber - degraded / clock skew */
+  --cm-warning-subtle: rgba(245, 158, 11, 0.12);
+
+  --cm-critical: #ef4444;      /* Crimson - critical / cycle / inversion */
+  --cm-critical-subtle: rgba(239, 68, 68, 0.12);
+
+  --cm-info: #6366f1;          /* Indigo - concurrency / informative */
+  --cm-info-subtle: rgba(99, 102, 241, 0.12);
+
+  --cm-unavailable: #475569;   /* Slate - offline / missing */
+  --cm-unavailable-subtle: rgba(71, 85, 105, 0.15);
+
+  /* Spacing Tokens */
+  --cm-space-2xs: 2px;
+  --cm-space-xs: 4px;
+  --cm-space-sm: 8px;
+  --cm-space-md: 12px;
+  --cm-space-lg: 16px;
+  --cm-space-xl: 20px;
+  --cm-space-2xl: 28px;
+
+  /* Radius Tokens */
+  --cm-radius-sm: 4px;
+  --cm-radius-md: 6px;
+  --cm-radius-lg: 10px;
+  --cm-radius-full: 9999px;
+
+  /* Shadow & Elevation Tokens */
+  --cm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --cm-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --cm-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Transitions */
+  --cm-transition-fast: 150ms ease;
+  --cm-transition-normal: 220ms ease;
+}
+
+/* Base Body Adjustments */
+body {
+  margin: 0;
+  background-color: var(--cm-bg-base);
+  color: var(--cm-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Reusable Component Utilities
+   ========================================================================== */
+
+/* 1. Cards & Containers */
+.cm-card {
+  background-color: var(--cm-bg-surface);
+  border: 1px solid var(--cm-border-subtle);
+  border-radius: var(--cm-radius-md);
+  padding: var(--cm-space-lg);
+  box-shadow: var(--cm-shadow-sm);
+  transition: border-color var(--cm-transition-fast);
+}
+
+.cm-card:hover {
+  border-color: var(--cm-border-default);
+}
+
+.cm-card-elevated {
+  background-color: var(--cm-bg-elevated);
+  border: 1px solid var(--cm-border-default);
+  border-radius: var(--cm-radius-md);
+  padding: var(--cm-space-lg);
+  box-shadow: var(--cm-shadow-md);
+}
+
+/* 2. Badges */
+.cm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cm-space-xs);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--cm-radius-sm);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.cm-badge-healthy,
+.cm-badge-success {
+  background-color: var(--cm-success-subtle);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.cm-badge-degraded,
+.cm-badge-warning {
+  background-color: var(--cm-warning-subtle);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.cm-badge-critical {
+  background-color: var(--cm-critical-subtle);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.cm-badge-info {
+  background-color: var(--cm-info-subtle);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.cm-badge-unavailable {
+  background-color: var(--cm-unavailable-subtle);
+  color: #94a3b8;
+  border-color: rgba(71, 85, 105, 0.4);
+}
+
+/* 3. Buttons */
+.cm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cm-space-xs);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--cm-radius-sm);
+  cursor: pointer;
+  border: 1px solid var(--cm-border-default);
+  background-color: var(--cm-bg-elevated);
+  color: var(--cm-text-primary);
+  transition: all var(--cm-transition-fast);
+}
+
+.cm-btn:hover:not(:disabled) {
+  background-color: var(--cm-bg-surface-hover);
+  border-color: var(--cm-border-strong);
+}
+
+.cm-btn-primary {
+  background-color: #0284c7;
+  border-color: #0ea5e9;
+  color: #ffffff;
+}
+
+.cm-btn-primary:hover:not(:disabled) {
+  background-color: #0369a1;
+  border-color: #38bdf8;
+}
+
+.cm-btn-accent {
+  background-color: var(--cm-accent-subtle);
+  border-color: var(--cm-accent);
+  color: var(--cm-accent);
+}
+
+.cm-btn-accent:hover:not(:disabled) {
+  background-color: var(--cm-accent);
+  color: var(--cm-text-inverse);
+}
+
+.cm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 4. Status Dot Indicator */
+.cm-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cm-status-dot.healthy { background-color: var(--cm-success); box-shadow: 0 0 6px var(--cm-success); }
+.cm-status-dot.degraded { background-color: var(--cm-warning); box-shadow: 0 0 6px var(--cm-warning); }
+.cm-status-dot.critical { background-color: var(--cm-critical); box-shadow: 0 0 6px var(--cm-critical); }
+.cm-status-dot.unavailable { background-color: var(--cm-unavailable); }
+
+/* 5. Tables */
+.cm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.cm-table th {
+  background-color: rgba(13, 21, 38, 0.8);
+  color: var(--cm-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--cm-border-subtle);
+}
+
+.cm-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--cm-border-subtle);
+  color: var(--cm-text-secondary);
+}
+
+.cm-table tr:hover td {
+  background-color: var(--cm-bg-surface-hover);
+  color: var(--cm-text-primary);
+}
+
+/* 6. Loading, Empty, and Error States */
+.cm-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--cm-text-muted);
+  gap: var(--cm-space-sm);
+  font-size: 13px;
+}
+
+.cm-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--cm-border-subtle);
+  border-top-color: var(--cm-accent);
+  border-radius: 50%;
+  animation: cm-spin 0.8s linear infinite;
+}
+
+@keyframes cm-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cm-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: rgba(13, 21, 38, 0.4);
+  border: 1px dashed var(--cm-border-subtle);
+  border-radius: var(--cm-radius-md);
+  color: var(--cm-text-muted);
+}
+
+.cm-empty-state h4 {
+  margin: 0 0 6px 0;
+  color: var(--cm-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cm-empty-state p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.cm-error-box {
+  background-color: var(--cm-critical-subtle);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--cm-radius-md);
+  padding: 14px 16px;
+  color: #fca5a5;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 7. D3 Causal Graph Preservation & Contrast */
+.cm-graph-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #0f172a 0%, #070b14 100%);
+}
+
+.cm-graph-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+  background: rgba(13, 21, 38, 0.85);
+  padding: 4px;
+  border-radius: var(--cm-radius-sm);
+  border: 1px solid var(--cm-border-subtle);
+}
+
+.cm-graph-legend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(13, 21, 38, 0.9);
+  padding: 8px 12px;
+  border-radius: var(--cm-radius-sm);
+  border: 1px solid var(--cm-border-subtle);
+  font-size: 11px;
+  color: var(--cm-text-secondary);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

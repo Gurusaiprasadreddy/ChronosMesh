@@ -170,3 +170,127 @@ export interface SystemMetrics {
   current_scenario: string | null;
   api_version: string;
 }
+
+// ── New Analysis Models (Strict Typing) ────────────────────────────────────────
+
+export interface ServiceHealthItem {
+  service_name: string;
+  status: 'Healthy' | 'Degraded' | 'Critical' | 'Unavailable';
+  event_count: number;
+  anomaly_count: number;
+  latest_activity_ms: number | null;
+  avg_latency_ms: number | null;
+  details: {
+    critical_anomalies?: number;
+    warning_anomalies?: number;
+  };
+}
+
+export interface ServiceHealthReport {
+  services: ServiceHealthItem[];
+  total_services: number;
+  healthy_count: number;
+  degraded_count: number;
+  critical_count: number;
+  unavailable_count: number;
+  timestamp_ms: number;
+}
+
+export interface ClockDriftPoint {
+  event_id: string;
+  service_id: string;
+  timestamp_ms: number;
+  arrival_time_ms: number;
+  arrival_skew_ms: number;
+  causal_skew_ms: number | null;
+  is_inversion: boolean;
+  clock_type: string;
+}
+
+export interface ClockDriftTimeline {
+  trace_id: string | null;
+  data_points: ClockDriftPoint[];
+  max_arrival_skew_ms: number;
+  inversion_count: number;
+  skew_tolerance_ms: number;
+  methodology: string;
+}
+
+export interface LatencyBin {
+  bin_start_ms: number;
+  bin_end_ms: number;
+  count: number;
+}
+
+export interface LatencyHistogramReport {
+  sample_size: number;
+  p50_ms: number | null;
+  p95_ms: number | null;
+  p99_ms: number | null;
+  min_ms: number | null;
+  max_ms: number | null;
+  mean_ms: number | null;
+  bins: LatencyBin[];
+  inversion_edge_count: number;
+  note: string | null;
+}
+
+export interface LongestPathInfo {
+  length: number;
+  path: string[];
+  duration_ms: number | null;
+}
+
+export interface TopologyStatsReport {
+  node_count: number;
+  edge_count: number;
+  density: number;
+  is_connected: boolean;
+  connected_components: number;
+  root_nodes: string[];
+  leaf_nodes: string[];
+  longest_causal_path: LongestPathInfo;
+  coupling_metric: number;
+  concurrency_pairs_count: number;
+  concurrency_ratio: number;
+}
+
+export interface EventSummary {
+  event_id: string;
+  service_id: string;
+  event_type: string;
+  timestamp_ms: number;
+  lamport_ts: number;
+  parents: string[];
+}
+
+export interface ReplayLayer {
+  layer_index: number;
+  events: EventSummary[];
+  concurrent_count: number;
+}
+
+export interface EventReplayReport {
+  total_layers: number;
+  total_events: number;
+  max_parallelism: number;
+  layers: ReplayLayer[];
+}
+
+export interface GraphDiffReport {
+  diff: {
+    added_nodes?: string[];
+    removed_nodes?: string[];
+    added_edges?: Array<[string, string]>;
+    removed_edges?: Array<[string, string]>;
+    summary?: {
+      nodes_added: number;
+      nodes_removed: number;
+      edges_added: number;
+      edges_removed: number;
+    };
+    note?: string;
+  };
+  scenario: string | null;
+}
+

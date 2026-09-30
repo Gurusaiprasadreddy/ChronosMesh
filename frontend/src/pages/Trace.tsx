@@ -21,6 +21,27 @@ export const TracePage: React.FC<TracePageProps> = ({
   const [selectedNode, setSelectedNode] = useState<DAGNode | null>(null);
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
 
+  const handleSelectNode = React.useCallback((node: DAGNode) => {
+    setSelectedNode(node);
+  }, []);
+
+  // Auto-select initial root node on load, or preserve active selection across trace changes
+  React.useEffect(() => {
+    if (dagData && dagData.nodes && dagData.nodes.length > 0) {
+      setSelectedNode((prev) => {
+        if (!prev) {
+          const rootId = dagData.roots && dagData.roots[0];
+          const rootNode = rootId ? dagData.nodes.find((n) => n.id === rootId) : null;
+          return rootNode || dagData.nodes[0];
+        }
+        const match = dagData.nodes.find((n) => n.id === prev.id);
+        return match || dagData.nodes[0];
+      });
+    } else {
+      setSelectedNode(null);
+    }
+  }, [dagData]);
+
   if (!dagData || !dagData.nodes.length) {
     return (
       <div className="card" style={{ padding: '60px', textAlign: 'center', color: '#64748b' }}>
@@ -69,7 +90,7 @@ export const TracePage: React.FC<TracePageProps> = ({
           dagData={dagData}
           selectedNodeId={selectedNode?.id}
           highlightedPath={highlightedPath}
-          onSelectNode={(node) => setSelectedNode(node)}
+          onSelectNode={handleSelectNode}
         />
       </div>
 

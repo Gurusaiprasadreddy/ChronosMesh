@@ -90,32 +90,46 @@ export const Navbar: React.FC<NavbarProps> = ({
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px' }}>
             <span style={{ fontSize: '12px', color: '#e2e8f0', fontWeight: 600 }}>
-              {user.username}
+              👤 {user.full_name || user.username}
             </span>
             {onLogout && (
               <button
-                className="logout-btn"
+                className="btn btn-outline btn-sm"
                 onClick={onLogout}
-                title="Logout"
+                title="Log out of ChronosMesh"
                 style={{
-                  background: 'none',
-                  border: '1px solid #334155',
-                  color: '#94a3b8',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  borderColor: '#334155',
+                  color: '#cbd5e1',
+                  padding: '4px 10px',
+                  fontSize: '12px',
                   cursor: 'pointer',
                 }}
               >
-                ⏻
+                <span>🚪</span> Log Out
               </button>
             )}
           </div>
         ) : (
-          onOpenLogin && (
-            <button className="btn btn-primary btn-sm" onClick={onOpenLogin}>
-              🔐 Sign In
-            </button>
-          )
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={onOpenLogin}
+            title="Sign in to ChronosMesh"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              marginLeft: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            <span>🔐</span> Log In
+          </button>
         )}
       </div>
     </header>

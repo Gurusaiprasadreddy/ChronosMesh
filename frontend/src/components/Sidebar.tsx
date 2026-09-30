@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../types';
 
-export type ViewTab = 'overview' | 'dag' | 'timeline' | 'anomaly' | 'whatif' | 'benchmark' | 'docs';
+export type ViewTab = 'overview' | 'dag' | 'timeline' | 'anomaly' | 'whatif' | 'benchmark' | 'analytics' | 'diff' | 'docs';
 
 interface SidebarProps {
   currentView: ViewTab;
@@ -10,6 +10,7 @@ interface SidebarProps {
   currentScenario: string | null;
   anomalyCount: number;
   onLogout: () => void;
+  onOpenLogin?: () => void;
   onSelectTrace?: (traceId: string) => void;
 }
 
@@ -20,6 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentScenario,
   anomalyCount,
   onLogout,
+  onOpenLogin,
   onSelectTrace,
 }) => {
   const userInitials = (user?.full_name || user?.username || 'G')
@@ -59,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             <option value="" disabled>-- Select Trace --</option>
+            <option value="ecommerce_demo">⚡ TRACE-DEMO-001 (E-Commerce)</option>
             <option value="order_payment_flow">T-1001: Order Flow (Chain)</option>
             <option value="concurrent_branches">T-1002: Concurrent Pay/Inv (Fork)</option>
             <option value="diamond_pattern">T-1003: Diamond (Fork-Join)</option>
@@ -121,6 +124,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <span className="nav-icon">📈</span> Clock Benchmark
         </button>
+        <button
+          className={`nav-item ${currentView === 'analytics' ? 'active' : ''}`}
+          onClick={() => onSelectView('analytics')}
+        >
+          <span className="nav-icon">🔬</span> Analytics
+        </button>
+        <button
+          className={`nav-item ${currentView === 'diff' ? 'active' : ''}`}
+          onClick={() => onSelectView('diff')}
+        >
+          <span className="nav-icon">⚖️</span> Graph Diff
+        </button>
 
         <div className="nav-section-label" style={{ marginTop: '16px' }}>
           Architecture
@@ -134,15 +149,75 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       <div className="sidebar-footer">
-        <div className="user-card">
-          <div className="user-avatar">{userInitials}</div>
-          <div className="user-info">
-            <div className="user-name">{user?.full_name || user?.username || 'Guest'}</div>
-            <div className="user-role">{user?.role || 'viewer'}</div>
+        <div
+          className="user-card"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            padding: '10px 12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+            <div className="user-avatar" style={{ flexShrink: 0 }}>{userInitials}</div>
+            <div className="user-info" style={{ minWidth: 0, overflow: 'hidden' }}>
+              <div
+                className="user-name"
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#f8fafc',
+                }}
+              >
+                {user?.full_name || user?.username || 'Guest'}
+              </div>
+              <div className="user-role" style={{ fontSize: '10px', color: '#64748b' }}>
+                {user ? (user.role || 'operator') : 'viewer (guest)'}
+              </div>
+            </div>
           </div>
-          {user && (
-            <button className="logout-btn" onClick={onLogout} title="Logout">
-              ⏻
+          {user ? (
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={onLogout}
+              title="Log out of ChronosMesh"
+              style={{
+                padding: '4px 8px',
+                fontSize: '11px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                borderColor: '#334155',
+                color: '#cbd5e1',
+                cursor: 'pointer',
+              }}
+            >
+              <span>🚪</span> Log Out
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={onOpenLogin || onLogout}
+              title="Sign in to ChronosMesh"
+              style={{
+                padding: '4px 8px',
+                fontSize: '11px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <span>🔐</span> Log In
             </button>
           )}
         </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { DAGData, DAGNode, DAGEdge } from '../types';
 import { getServiceColor, getServiceLabel } from '../utils/colors';
@@ -9,6 +9,8 @@ interface CausalGraphProps {
   highlightedPath?: string[];
   invalidatedNodeIds?: string[];
   removedNodeId?: string | null;
+  anomalyNodeIds?: string[];
+  rootCauseNodeIds?: string[];
   onSelectNode: (node: DAGNode) => void;
   onSelectEdge?: (edge: DAGEdge) => void;
 }
@@ -19,11 +21,23 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
   highlightedPath = [],
   invalidatedNodeIds = [],
   removedNodeId = null,
+  anomalyNodeIds = [],
+  rootCauseNodeIds = [],
   onSelectNode,
   onSelectEdge,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const initialTransformRef = useRef<d3.ZoomTransform | null>(null);
+  const currentTransformRef = useRef<d3.ZoomTransform | null>(null);
+
+  const [tooltip, setTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    node: DAGNode | null;
+  }>({ visible: false, x: 0, y: 0, node: null });
 
   useEffect(() => {
     if (!containerRef.current || !dagData || !dagData.nodes.length) {
@@ -40,7 +54,7 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
     const ROW_H = 100;
     const PADDING = 50;
 
-    // ── 1. Calculate positions via Kahn's algorithm & depth ──────────────────
+    // ── 1. Calculate positions via Kahn's topological depth ──────────────────
     const nodes = dagData.nodes;
     const edges = dagData.edges;
 
@@ -101,7 +115,7 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
 
     const g = svg.append('g').attr('class', 'main-group');
 
-    // Auto-center the layout
+    // Auto-center layout
     const allX = Object.values(positions).map((p) => p.x);
     const allY = Object.values(positions).map((p) => p.y);
     const minX = Math.min(...allX);
@@ -111,18 +125,36 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    const initialTransform = d3.zoomIdentity
-      .translate(width / 2 - centerX, height / 2 - centerY);
+    const initialTransform = d3.zoomIdentity.translate(width / 2 - centerX, height / 2 - centerY);
+    initialTransformRef.current = initialTransform;
 
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.3, 3])
-      .on('zoom', (event) => g.attr('transform', event.transform));
+      .clickDistance(10)
+      .filter((event) => {
+        const target = event.target as Element | null;
+        if (target && target.closest('.node-item')) {
+          return false;
+        }
+        return (!event.ctrlKey || event.type === 'wheel') && !event.button;
+      })
+      .on('zoom', (event) => {
+        currentTransformRef.current = event.transform;
+        g.attr('transform', event.transform);
+      });
 
+    zoomBehaviorRef.current = zoomBehavior;
     svg.call(zoomBehavior);
-    svg.call(zoomBehavior.transform, initialTransform);
 
-    // Defs for arrowhead markers
+    if (currentTransformRef.current) {
+      svg.call(zoomBehavior.transform, currentTransformRef.current);
+    } else {
+      svg.call(zoomBehavior.transform, initialTransform);
+      currentTransformRef.current = initialTransform;
+    }
+
+    // Marker defs
     const defs = svg.append('defs');
     const markerTypes = [
       { id: 'arrow-normal', color: '#475569' },
@@ -231,6 +263,13 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
     // ── 5. Nodes ────────────────────────────────────────────────────────────
     const nodeGroup = g.append('g').attr('class', 'nodes');
 
+    const handleNodeClick = (event: any, d: DAGNode) => {
+      if (event) {
+        event.stopPropagation();
+      }
+      onSelectNode(d);
+    };
+
     const nodeEls = nodeGroup
       .selectAll('.node-item')
       .data(nodes)
@@ -239,21 +278,42 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
       .attr('class', 'node-item')
       .attr('transform', (d) => `translate(${positions[d.id].x},${positions[d.id].y})`)
       .style('cursor', 'pointer')
-      .on('click', (_, d) => onSelectNode(d));
+      .on('click', handleNodeClick)
+      .on('pointerup', (event, d) => {
+        if (event && (event.button === 0 || event.button === undefined)) {
+          handleNodeClick(event, d);
+        }
+      })
+      .on('mouseenter', (event, d) => {
+        const bounds = container.getBoundingClientRect();
+        setTooltip({
+          visible: true,
+          x: event.clientX - bounds.left + 15,
+          y: event.clientY - bounds.top + 15,
+          node: d,
+        });
+      })
+      .on('mouseleave', () => {
+        setTooltip((prev) => ({ ...prev, visible: false }));
+      });
 
-    // Outer glow ring
+    // Outer glow / anomaly / root cause ring
     nodeEls
       .append('circle')
       .attr('r', NODE_R + 5)
       .attr('fill', (d) => `${getServiceColor(d.service_id)}15`)
-      .attr('stroke', (d) =>
-        d.id === selectedNodeId
-          ? '#f59e0b'
-          : d.id === removedNodeId
-          ? '#ef4444'
-          : `${getServiceColor(d.service_id)}40`
-      )
-      .attr('stroke-width', (d) => (d.id === selectedNodeId ? 2 : 1));
+      .attr('stroke', (d) => {
+        if (d.id === selectedNodeId) return '#f59e0b';
+        if (d.id === removedNodeId) return '#ef4444';
+        if (rootCauseNodeIds.includes(d.id)) return '#f43f5e';
+        if (anomalyNodeIds.includes(d.id)) return '#e11d48';
+        return `${getServiceColor(d.service_id)}40`;
+      })
+      .attr('stroke-width', (d) =>
+        d.id === selectedNodeId || rootCauseNodeIds.includes(d.id) || anomalyNodeIds.includes(d.id)
+          ? 3
+          : 1
+      );
 
     // Main Circle
     nodeEls
@@ -268,6 +328,7 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
         if (d.id === removedNodeId) return '#ef4444';
         if (invalidatedNodeIds.includes(d.id)) return '#f97316';
         if (d.id === selectedNodeId) return '#f59e0b';
+        if (rootCauseNodeIds.includes(d.id)) return '#f43f5e';
         return getServiceColor(d.service_id);
       })
       .attr('stroke-width', (d) => (d.id === selectedNodeId ? 3 : 2));
@@ -281,6 +342,7 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
       .attr('font-weight', '700')
       .attr('font-family', 'JetBrains Mono, monospace')
       .attr('fill', '#f1f5f9')
+      .style('pointer-events', 'none')
       .text((d) => {
         const parts = d.event_type.split('_');
         if (parts.length === 1) return d.event_type.slice(0, 5);
@@ -297,7 +359,8 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
       .attr('rx', 7)
       .attr('fill', '#090d16')
       .attr('stroke', '#334155')
-      .attr('stroke-width', 1);
+      .attr('stroke-width', 1)
+      .style('pointer-events', 'none');
 
     nodeEls
       .append('text')
@@ -309,52 +372,152 @@ export const CausalGraph: React.FC<CausalGraphProps> = ({
       .attr('font-weight', '700')
       .attr('font-family', 'monospace')
       .attr('fill', '#00d4ff')
+      .style('pointer-events', 'none')
       .text((d) => `L${d.lamport_ts}`);
 
-  }, [dagData, selectedNodeId, highlightedPath, invalidatedNodeIds, removedNodeId, onSelectNode, onSelectEdge]);
+    // Robust transparent hit target covering the entire node
+    nodeEls
+      .append('circle')
+      .attr('class', 'node-hitbox')
+      .attr('r', NODE_R + 10)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .style('pointer-events', 'all')
+      .on('click', handleNodeClick)
+      .on('pointerup', (event, d) => {
+        if (event && (event.button === 0 || event.button === undefined)) {
+          handleNodeClick(event, d);
+        }
+      });
+
+  }, [
+    dagData,
+    selectedNodeId,
+    highlightedPath,
+    invalidatedNodeIds,
+    removedNodeId,
+    anomalyNodeIds,
+    rootCauseNodeIds,
+    onSelectNode,
+    onSelectEdge,
+  ]);
+
+  // Zoom control helpers
+  const handleZoomIn = () => {
+    if (svgRef.current && zoomBehaviorRef.current) {
+      d3.select(svgRef.current).transition().duration(250).call(zoomBehaviorRef.current.scaleBy, 1.3);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (svgRef.current && zoomBehaviorRef.current) {
+      d3.select(svgRef.current).transition().duration(250).call(zoomBehaviorRef.current.scaleBy, 0.7);
+    }
+  };
+
+  const handleZoomReset = () => {
+    if (svgRef.current && zoomBehaviorRef.current && initialTransformRef.current) {
+      d3.select(svgRef.current)
+        .transition()
+        .duration(300)
+        .call(zoomBehaviorRef.current.transform, initialTransformRef.current);
+    }
+  };
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '500px' }}>
+      {/* Zoom Toolbar */}
+      <div className="cm-graph-toolbar">
+        <button
+          className="cm-btn"
+          style={{ padding: '4px 8px', fontSize: '12px' }}
+          onClick={handleZoomIn}
+          title="Zoom In"
+        >
+          +
+        </button>
+        <button
+          className="cm-btn"
+          style={{ padding: '4px 8px', fontSize: '12px' }}
+          onClick={handleZoomOut}
+          title="Zoom Out"
+        >
+          −
+        </button>
+        <button
+          className="cm-btn"
+          style={{ padding: '4px 8px', fontSize: '12px' }}
+          onClick={handleZoomReset}
+          title="Reset Zoom"
+        >
+          ⟲
+        </button>
+      </div>
+
       <div
         ref={containerRef}
-        style={{ width: '100%', height: '100%', minHeight: '500px', borderRadius: '12px', overflow: 'hidden' }}
+        style={{ width: '100%', height: '100%', minHeight: '500px', borderRadius: '8px', overflow: 'hidden' }}
       />
+
+      {/* Hover Tooltip */}
+      {tooltip.visible && tooltip.node && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            background: 'rgba(13, 21, 38, 0.95)',
+            border: '1px solid var(--cm-border-default)',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            fontSize: '11px',
+            color: 'var(--cm-text-primary)',
+            pointerEvents: 'none',
+            zIndex: 100,
+            boxShadow: 'var(--cm-shadow-md)',
+          }}
+        >
+          <div style={{ fontWeight: 700, color: 'var(--cm-accent)' }}>{tooltip.node.id}</div>
+          <div>Type: {tooltip.node.event_type}</div>
+          <div>Service: {getServiceLabel(tooltip.node.service_id)}</div>
+          <div>Lamport: L{tooltip.node.lamport_ts}</div>
+        </div>
+      )}
+
       {/* Legend */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '16px',
-          left: '16px',
-          background: 'rgba(13, 21, 38, 0.9)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid #1e293b',
-          borderRadius: '8px',
-          padding: '8px 12px',
-          display: 'flex',
-          gap: '12px',
-          fontSize: '11px',
-          color: '#94a3b8',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00d4ff' }} />
-          <span>Explicit</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#475569' }} />
-          <span>Inferred</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
-          <span>Selected / Critical</span>
-        </div>
-        {invalidatedNodeIds.length > 0 && (
+      <div className="cm-graph-legend">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
-            <span>Invalidated</span>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00d4ff' }} />
+            <span>Explicit</span>
           </div>
-        )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#475569' }} />
+            <span>Inferred</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+            <span>Selected</span>
+          </div>
+          {anomalyNodeIds.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e11d48' }} />
+              <span>Anomaly</span>
+            </div>
+          )}
+          {rootCauseNodeIds.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f43f5e' }} />
+              <span>Root Cause</span>
+            </div>
+          )}
+          {invalidatedNodeIds.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
+              <span>Invalidated</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

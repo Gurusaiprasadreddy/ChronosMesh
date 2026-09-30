@@ -56,12 +56,14 @@ export const CausalTimeline: React.FC<CausalTimelineProps> = ({
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {evt.event_type}
                 </div>
-                <div style={{ fontSize: '10px', color: '#64748b', display: 'flex', gap: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <span>{getServiceLabel(evt.service_id)}</span>
+                  <span>•</span>
+                  <span>TS: {evt.timestamp_ms}ms</span>
                   <span>•</span>
                   <span>L{evt.lamport_ts}</span>
                   {evt.parent_event_ids?.length > 0 && (
-                    <span>• ← {evt.parent_event_ids.length} parent(s)</span>
+                    <span>• ← {evt.parent_event_ids.join(', ')}</span>
                   )}
                 </div>
               </div>

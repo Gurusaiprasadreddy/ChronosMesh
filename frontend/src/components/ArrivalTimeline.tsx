@@ -56,8 +56,12 @@ export const ArrivalTimeline: React.FC<ArrivalTimelineProps> = ({
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {evt.event_type}
                 </div>
-                <div style={{ fontSize: '10px', color: '#64748b', display: 'flex', gap: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <span>{getServiceLabel(evt.service_id)}</span>
+                  <span>•</span>
+                  <span>Arrival: {evt.arrival_time_ms}ms</span>
+                  <span>•</span>
+                  <span>Gen: {evt.timestamp_ms}ms</span>
                   <span>•</span>
                   <span>L{evt.lamport_ts}</span>
                 </div>

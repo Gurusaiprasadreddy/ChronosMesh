@@ -4,8 +4,8 @@
 [![Repository](https://img.shields.io/badge/GitHub-Gurusaiprasadreddy%2FChronosMesh-blue.svg?logo=github)](https://github.com/Gurusaiprasadreddy/ChronosMesh)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)]()
 [![Node.js 20+](https://img.shields.io/badge/node.js-20%2B-green.svg)]()
-[![Tests](https://img.shields.io/badge/tests-204%20Python%20%7C%204%20Vitest%20passing-brightgreen.svg)]()
-[![Vite Build](https://img.shields.io/badge/vite%20build-619%20modules%20transformed-success.svg)]()
+[![Tests](https://img.shields.io/badge/tests-215%20Python%20%7C%208%20Vitest%20passing-brightgreen.svg)]()
+[![Vite Build](https://img.shields.io/badge/vite%20build-623%20modules%20transformed-success.svg)]()
 [![Docker](https://img.shields.io/badge/docker-compose%20ready-blue.svg)]()
 [![Observability](https://img.shields.io/badge/prometheus%20%26%20grafana-integrated-orange.svg)]()
 [![Academic Rubric](https://img.shields.io/badge/rubric%20readiness-20%2F20%20Marks-brightgreen.svg)]()
@@ -55,7 +55,7 @@ Relying on wall-clock timestamps (`timestamp_ms`) to diagnose incidents causes p
 | **7** | **Monitoring, Performance & Optimization** | **1** | Monitoring, logging, performance analysis, and optimization | Prometheus `/metrics` exporter, Grafana dashboard and alerts ([`observability/`](observability/)), 3,602.3 ev/s generation rate, 3.1x transitive reduction speedup. | **COMPLETE** (1/1) |
 | **8** | **Documentation & Presentation** | **2** | Architecture diagrams, documentation, screenshots, demonstration scripts | 37 comprehensive guides in [`docs/`](docs/), presentation deck ([`docs/PRESENTATION_DECK.md`](docs/PRESENTATION_DECK.md)), demo scripts, viva prep ([`docs/VIVA_QA.md`](docs/VIVA_QA.md)). | **COMPLETE** (2/2) |
 | **9** | **Innovation & Problem Solving** | **1** | Creativity, technical challenges, problem-solving approach | TrueTime confidence scoring ($P(A \to B)$), out-of-order tumbling buffer, localized DAG pruning, forward what-if fault blast radius simulation. | **COMPLETE** (1/1) |
-| **—** | **TOTAL** | **20** | **Comprehensive Academic & Technical Verification** | **204 Python Tests Passing + 4 Vitest Tests Passing + Clean Vite Production Build** | **20 / 20** |
+| **—** | **TOTAL** | **20** | **Comprehensive Academic & Technical Verification** | **215 Python Tests Passing + 8 Vitest Tests Passing + Clean Vite Production Build** | **20 / 20** |
 
 ---
 
@@ -150,16 +150,47 @@ ChronosMesh maintains an automated regression suite across backend and frontend:
 ```bash
 # Run all Python tests (from repository root)
 python -m pytest tests/ -v
-# Result: 204 passed, 1 warning (100% green)
+# Result: 215 passed, 1 warning (100% green)
 
 # Run Frontend Vitest tests (from frontend/)
 cd frontend && npm run test
-# Result: 4 passed (100% green)
+# Result: 8 passed (100% green)
 
 # Production Frontend Build (from frontend/)
 cd frontend && npm run build
-# Result: 619 modules transformed -> dist/index.html (1.20 kB), dist/assets/ (291.67 kB)
+# Result: 623 modules transformed -> dist/index.html (1.20 kB), dist/assets/ (335.80 kB)
 ```
+
+---
+
+## 9. Observability & Advanced Analytics Platform
+
+ChronosMesh provides a production-grade distributed systems observability dashboard and analysis engine:
+
+### 9.1 Professional Design System (`frontend/src/index.css`)
+- **Curated Tokens:** Semantic CSS variables for dark background hierarchy (`--cm-bg-base`, `--cm-bg-surface`, `--cm-bg-elevated`), high-contrast borders, and technical accents (`--cm-accent` sky blue, `--cm-success` emerald, `--cm-warning` amber, `--cm-critical` crimson, `--cm-info` indigo).
+- **Reusable Component Classes:** `.cm-card`, `.cm-badge`, `.cm-btn`, `.cm-table`, `.cm-status-dot`, `.cm-empty-state`, `.cm-loading-box`, `.cm-error-box`.
+- **D3 SVG Safety:** Preserves SVG force simulations, marker defs, and drag-and-zoom behaviors without style regressions.
+
+### 9.2 Five Advanced Analysis APIs (`api/routers/analysis_router.py` & `api/services/analysis_service.py`)
+
+| Method | Endpoint | Description | Return Model |
+|---|---|---|---|
+| `GET` | `/api/analysis/service-health` | Deterministically derived service health (`Healthy`, `Degraded`, `Critical`, `Unavailable`) based on active DAG events and detected anomalies. | `ServiceHealthReport` |
+| `GET` | `/api/analysis/clock-drift-timeline` | Physical clock skew and arrival delay per event across causal edges. **Zero subtraction of Lamport integers from physical milliseconds.** | `ClockDriftTimeline` |
+| `GET` | `/api/analysis/latency-histogram` | Distribution of positive edge transit times with exact percentiles (`p50`, `p95`, `p99`, `min`, `max`, `mean`). Isolates negative time-inversion edges. | `LatencyHistogramReport` |
+| `GET` | `/api/analysis/topology-stats` | NetworkX graph-theoretic analysis: node/edge count, density, longest causal path, coupling metric ($2E/V$), and pairwise concurrency factor. | `TopologyStatsReport` |
+| `GET` | `/api/analysis/event-replay` | Topological generation layers reconstructing execution sequences where concurrent events execute in parallel without fake serialization. | `EventReplayReport` |
+
+### 9.3 UI Views & Capabilities
+1. **System Overview Dashboard:** Real API metrics, dynamic Service Health Map, live causal edge transit latencies, recent anomaly alerts, and a prominent 1-click **⚡ Load TRACE-DEMO-001** trigger.
+2. **Trace Explorer & D3 Causal Graph:** Interactive Zoom/Pan/Reset toolbar, hover tooltips, service swimlanes, anomaly/root-cause highlights, and rich event inspector (Event ID, type, service, arrival time, event time, Lamport, Vector Clock, parents, children).
+3. **Dual Timeline:** Side-by-side comparison of **Kafka Arrival Order** (disordered) vs **Reconstructed Causal Order** (topologically verified).
+4. **Anomaly Center:** Categorized triage (Critical, Warning, Info), search filter, and diagnosis drawer.
+5. **Root-Cause Analysis:** Structured diagnosis flow (`ROOT CAUSE` → `CAUSAL CHAIN` → `AFFECTED SERVICES` → `DOWNSTREAM IMPACT`).
+6. **What-If Blast Radius Lab:** Counterfactual non-destructive simulation (`🧪 SIMULATION MODE`) calculating cascade depth and affected nodes/services upon event removal.
+7. **Analytics Page:** Multi-tab technical dashboard featuring edge latency histograms, graph topology metrics, and step-through causal layer replay.
+8. **Graph Diff View:** Structural comparison highlighting added/removed nodes and edges with Jaccard similarity scoring.
 
 ---
 

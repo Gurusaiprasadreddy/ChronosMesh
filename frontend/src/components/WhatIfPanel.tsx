@@ -23,11 +23,16 @@ export const WhatIfPanel: React.FC<WhatIfPanelProps> = ({
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div className="card-header">
-        <div className="card-title">What-If Causal Replay & Blast Radius Lab</div>
-        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-          Simulate counterfactual events: "If event X had not occurred, what downstream effects cascade?"
+      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div className="card-title">What-If Causal Blast Radius Lab</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+            Counterfactual evaluation: "If event X had NOT occurred, what downstream effects cascade?"
+          </div>
         </div>
+        <span className="cm-badge cm-badge-warning" style={{ padding: '6px 12px' }}>
+          🧪 SIMULATION MODE (Non-destructive)
+        </span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px' }}>
